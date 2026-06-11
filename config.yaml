@@ -1,0 +1,94 @@
+# ===== Amazon 会員登録自動化 設定 =====
+
+# GAS（Google Apps Script）WebApp。amazon-regist-bot/appscript.js をデプロイした URL。
+gas_webapp_url: "https://script.google.com/macros/s/XXXXXXXX/exec"
+# アカウントシート名（列: email | password | name | phone_cc | phone_num | status | timestamp）
+sheet_name: "会員登録"
+start_col_letter: "A"   # アカウントデータ開始列
+email_col_letter: "A"   # メール列（recordResult の検索基準）
+num_cols: 5             # email/password/name/phone_cc/phone_num
+processing_order: "top" # top=上から / bottom=下から
+
+# ステータスに以下の語を含む行はスキップ（部分一致）
+skip_statuses: ["完了", "✓"]
+
+# ===== Gmail（メール OTP 自動取得） =====
+gmail:
+  # 確認コードメールの検索クエリ
+  query: 'from:account-update@amazon.co.jp OR from:no-reply@amazon.co.jp subject:確認コード'
+  timeout_sec: 120
+  credentials_file: "credentials.json"   # Google Cloud Console の OAuth クライアント
+  token_file: "token.json"               # 初回認証後に自動生成
+
+# ===== Chrome =====
+chrome:
+  browser_type: "chrome"
+  binary: ""                 # 空なら自動検出
+  user_data_dir: ""          # 空ならデフォルト（~/Library/Application Support/amazon-bot-profile-chrome）
+  window_position: [100, 80]
+  window_size: [1280, 900]
+  extra_args: []
+  profile_rotation:
+    enabled: false
+    exclude: []
+
+# ===== 人間的入力タイミング =====
+input:
+  mouse:
+    move_px_per_step_range: [3, 6]
+    step_interval_ms: [7, 14]
+    overshoot_probability: 0.25
+    target_jitter_px: 2
+    click_hold_ms: [40, 120]
+  keyboard:
+    key_down_ms: [30, 90]
+    inter_key_ms: [50, 220]
+    mistype_probability: 0.03
+    correction_pause_ms: [150, 400]
+  scroll:
+    tick_px_range: [3, 9]
+    tick_interval_ms: [40, 140]
+    readback_probability: 0.08
+
+# ===== CAPTCHA / WAF ガード =====
+# Amazon の Arkose CAPTCHA とメール/SMS OTP は amazon_flow 側でページ判定して
+# 手動待機する。ここは汎用 WAF/403 用。manual_wait=true で手動解決を待つ。
+guard:
+  captcha_timeout_sec: 300
+  notify_sound: "Ping"
+  manual_wait: true
+  detection_selectors: []      # 汎用 WAF を足すならここ
+  error_url_substrings: []
+
+# ===== リトライ / タイムアウト =====
+retries:
+  login_403: 1
+  max_wait_sec_per_account: 600   # 1 アカウントの登録フロー全体の上限（手動 CAPTCHA/SMS 含む）
+  max_wait_sec_apply: 120
+
+# ===== URL =====
+urls:
+  register_start: "https://www.amazon.co.jp/ap/register"
+  complete_substrings: ["/gp/yourstore", "/gp/css/homepage", "/ref=nav_ya_signin"]
+
+# ===== 通知（Discord、任意） =====
+notifications:
+  discord_webhook_url: ""
+  on_critical: true
+  on_summary: true
+  progress_every: 0
+
+# ===== PC スリープ防止 =====
+wake_lock:
+  enabled: true
+
+# ===== 自動再開（未完了の再処理） =====
+auto_resume:
+  enabled: false
+  max_rounds: 0
+  interval_sec: 1800
+  give_up_if_no_progress: true
+
+# ===== ドライラン（クリック/入力をログのみ・実入力しない） =====
+dryrun:
+  enabled: false
