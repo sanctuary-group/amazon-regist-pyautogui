@@ -15,8 +15,8 @@ skip_statuses: ["完了", "✓"]
 
 # ===== Gmail（メール OTP 自動取得） =====
 gmail:
-  # 確認コードメールの検索クエリ
-  query: 'from:account-update@amazon.co.jp OR from:no-reply@amazon.co.jp subject:確認コード'
+  # 確認コードメールの検索クエリ（差出人は iCloud 等で転送・書換えされるため件名+受信日時で絞る）
+  query: 'newer_than:1d subject:"アカウントの確認"'
   timeout_sec: 120
   credentials_file: "credentials.json"   # Google Cloud Console の OAuth クライアント
   token_file: "token.json"               # 初回認証後に自動生成
@@ -69,7 +69,7 @@ retries:
 
 # ===== URL =====
 urls:
-  register_start: "https://www.amazon.co.jp/ap/register"
+  register_start: "https://www.amazon.co.jp/register"
   complete_substrings: ["/gp/yourstore", "/gp/css/homepage", "/ref=nav_ya_signin"]
 
 # ===== 通知（Discord、任意） =====

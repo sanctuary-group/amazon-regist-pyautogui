@@ -35,6 +35,23 @@ from wake_lock import WakeLock
 
 log = setup_logger("amazon.main")
 
+# WebAuthn(パスキー) を無効化する初期化スクリプト。
+# Amazon の JS が走る前に評価し、PublicKeyCredential を未定義・credentials.create/get を
+# 拒否させることで、macOS の Touch ID パスキー保存ダイアログを出させず、
+# Amazon にも最初からパスキー画面をスキップさせる（パスワード経路へ）。
+WEBAUTHN_DISABLE_JS = """
+(() => {
+  try { Object.defineProperty(window, 'PublicKeyCredential', { value: undefined, configurable: true }); } catch (e) {}
+  try {
+    if (navigator.credentials) {
+      const reject = () => Promise.reject(new DOMException('disabled', 'NotAllowedError'));
+      navigator.credentials.create = reject;
+      navigator.credentials.get = reject;
+    }
+  } catch (e) {}
+})();
+"""
+
 # NOTE: human_input は画面を占有する HID イベントを発行するため、
 # このスクリプトは絶対に並列実行しないこと（複数プロセス不可）。
 
@@ -53,6 +70,11 @@ class BrowserSession:
         cc = chrome_cfg or self.cfg.chrome
         self.handle = await chrome_launcher.launch(cc)
         self.cdp = await CDPReader.from_browser(self.handle.browser)
+        # パスキー無効化スクリプトを全ナビゲーション前に登録（Touch ID ダイアログ抑止）
+        try:
+            await self.cdp.add_init_script(WEBAUTHN_DISABLE_JS)
+        except Exception as e:
+            log.warning(f"WebAuthn 無効化スクリプト登録に失敗（続行）: {e}")
         await self.cdp.get_window_position()
         self.hid = HumanInput(self.cfg.input, dryrun=self.cfg.dryrun)
         self.guard = Guard(self.cdp, self.cfg.guard)

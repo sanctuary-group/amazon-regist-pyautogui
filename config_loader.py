@@ -276,7 +276,7 @@ def _load_gmail(g: dict) -> GmailConfig:
 def _load_urls(u: dict) -> UrlsConfig:
     return UrlsConfig(
         register_start=str(
-            u.get("register_start") or "https://www.amazon.co.jp/ap/register"
+            u.get("register_start") or "https://www.amazon.co.jp/register"
         ),
         complete_substrings=list(
             u.get("complete_substrings")

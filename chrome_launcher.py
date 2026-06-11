@@ -212,6 +212,12 @@ def _disable_password_manager(user_data_dir: str) -> None:
             profile = {}
             prefs["profile"] = profile
         profile["password_manager_enabled"] = False
+        profile["password_manager_leak_detection"] = False
+        # autofill（住所/カード）の保存提案も抑制
+        autofill = prefs.setdefault("autofill", {})
+        if isinstance(autofill, dict):
+            autofill["profile_enabled"] = False
+            autofill["credit_card_enabled"] = False
         try:
             with open(prefs_path, "w", encoding="utf-8") as f:
                 json.dump(prefs, f, ensure_ascii=False)
@@ -319,6 +325,10 @@ async def launch(cfg: ChromeConfig) -> ChromeHandle:
         f"--window-size={cfg.window_size[0]},{cfg.window_size[1]}",
         "--no-first-run",
         "--no-default-browser-check",
+        # パスワード保存バブル / OS キーチェーン連携を抑制
+        "--disable-save-password-bubble",
+        "--password-store=basic",
+        "--disable-features=PasswordManagerOnboarding,PasswordLeakDetection,AutofillServerCommunication",
         *extra,
     ]
     suffix = f" profile={rotation_label}" if rotation_label else ""

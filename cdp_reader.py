@@ -78,6 +78,19 @@ class CDPReader:
     async def navigate(self, url: str) -> None:
         await self._tab.get(url)
 
+    async def add_init_script(self, source: str) -> None:
+        """各ページの読み込み前に評価されるスクリプトを登録する。
+
+        CDP Page.addScriptToEvaluateOnNewDocument。ページ本体のスクリプトより先に走るので、
+        WebAuthn(パスキー) 無効化など「サイト JS が走る前に環境を書き換える」用途に使う。
+        """
+        from nodriver.cdp import page as cdpp
+        try:
+            await self._tab.send(cdpp.enable())
+        except Exception:
+            pass
+        await self._tab.send(cdpp.add_script_to_evaluate_on_new_document(source))
+
     async def current_url(self) -> str:
         v = await self._evaluate_raw("location.href")
         return v or ""

@@ -68,7 +68,8 @@ class GasClient:
             "action": "fetchAccounts",
             "sheetName": self.cfg.sheet_name,
             "startColLetter": self.cfg.start_col_letter,
-            "numCols": str(self.cfg.num_cols),
+            # データ列 + status 列(E) も取得（skip_statuses 判定のため）
+            "numCols": str(self.cfg.num_cols + 1),
         })
         if not data.get("ok"):
             raise RuntimeError(f"fetchAccounts failed: {data}")
