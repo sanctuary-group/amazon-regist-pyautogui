@@ -9,19 +9,20 @@ class Account:
     email: str
     password: str = ""
     name: str = ""
-    phone_cc: str = ""
     phone_num: str = ""
     status: str = ""
 
     @classmethod
     def from_row(cls, row) -> "Account":
-        """GAS fetchAccounts は配列行 [email, password, name, phone_cc, phone_num] を返す。"""
+        """GAS fetchAccounts は配列行 [email, password, name, phone_num] を返す。
+
+        国番号は日本固定（+81）のためシート列には持たない。
+        """
         if isinstance(row, dict):
             return cls(
                 email=str(row.get("email") or "").strip(),
                 password=str(row.get("password") or "").strip(),
                 name=str(row.get("name") or "").strip(),
-                phone_cc=str(row.get("phone_cc") or "").strip(),
                 phone_num=str(row.get("phone_num") or "").strip(),
                 status=str(row.get("status") or "").strip(),
             )
@@ -32,7 +33,7 @@ class Account:
 
         return cls(
             email=_g(0), password=_g(1), name=_g(2),
-            phone_cc=_g(3), phone_num=_g(4), status=_g(5),
+            phone_num=_g(3), status=_g(4),
         )
 
 
@@ -79,6 +80,8 @@ class GasClient:
         data = self._post({
             "action": "getIncompleteAccounts",
             "sheetName": self.cfg.sheet_name,
+            "startColLetter": self.cfg.start_col_letter,
+            "numCols": str(self.cfg.num_cols),
         })
         if not data.get("ok"):
             raise RuntimeError(f"getIncompleteAccounts failed: {data}")
@@ -87,10 +90,13 @@ class GasClient:
         return [a for a in accounts if a.email]
 
     def record_result(self, email: str, status: str) -> dict:
+        # GAS 側で status 列 = startCol + numCols に算出。日時は GAS が status に内包して書込む。
         return self._post({
             "action": "recordResult",
             "sheetName": self.cfg.sheet_name,
+            "startColLetter": self.cfg.start_col_letter,
             "emailColLetter": self.cfg.email_col_letter,
+            "numCols": str(self.cfg.num_cols),
             "email": email,
             "status": status,
         })

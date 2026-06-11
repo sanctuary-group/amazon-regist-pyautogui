@@ -2,11 +2,12 @@
 
 # GAS（Google Apps Script）WebApp。amazon-regist-bot/appscript.js をデプロイした URL。
 gas_webapp_url: "https://script.google.com/macros/s/XXXXXXXX/exec"
-# アカウントシート名（列: email | password | name | phone_cc | phone_num | status | timestamp）
+# アカウントシート名（列: A:email | B:password | C:name | D:phone_num | E:status）
+# 国番号は日本固定（+81）のため列は持たない。処理日時は status 文字列に内包される。
 sheet_name: "会員登録"
 start_col_letter: "A"   # アカウントデータ開始列
 email_col_letter: "A"   # メール列（recordResult の検索基準）
-num_cols: 5             # email/password/name/phone_cc/phone_num
+num_cols: 4             # email/password/name/phone_num（status はこの直後の列に書込み）
 processing_order: "top" # top=上から / bottom=下から
 
 # ステータスに以下の語を含む行はスキップ（部分一致）

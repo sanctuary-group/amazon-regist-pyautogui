@@ -26,10 +26,25 @@ pip install -r requirements.txt
 cp config.yaml.template config.yaml   # 初回のみ
 ```
 
-1. `config.yaml` を編集:
-   - `gas_webapp_url`: `amazon-regist-bot/appscript.js` をデプロイした GAS WebApp URL
-   - `sheet_name`: アカウントシート名（列 `email|password|name|phone_cc|phone_num|status|timestamp`）
+1. `appscript.gs` を Google Apps Script にコピーしてウェブアプリとしてデプロイ。
+2. `config.yaml` を編集:
+   - `gas_webapp_url`: デプロイした GAS WebApp URL
+   - `sheet_name`: アカウントシート名
    - `notifications.discord_webhook_url`: 任意
+
+### スプレッドシート列構造
+
+| 列 | フィールド | 内容 |
+|---|---|---|
+| A | `email` | Amazon 登録メール（必須） |
+| B | `password` | 登録パスワード（必須） |
+| C | `name` | 氏名（必須） |
+| D | `phone_num` | 電話番号・国番号なし 例:`9012345678`（電話認証で必須） |
+| E | `status` | 処理ステータス（ツールが自動書込み・処理日時を内包） |
+
+- 1 行目はヘッダー、2 行目以降がデータ。国番号は日本固定（+81）のため列に持たない。
+- 結果は E 列に `完了 (2026/06/11 12:34)` / `エラー: ...` の形で書き込まれる。
+- `resume` は E 列に「完了 / ✓」を含まない行のみ再処理。
 2. Gmail OAuth 用 `credentials.json`（Google Cloud Console の OAuth クライアント）を配置。
    初回実行時にブラウザ認証 → `token.json` が生成される。
 

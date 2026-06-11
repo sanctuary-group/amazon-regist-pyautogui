@@ -306,7 +306,7 @@ async def handle_email_otp(cdp: CDPReader, hid: HumanInput, gmail: GmailClient, 
 
 
 async def handle_phone_input(cdp: CDPReader, hid: HumanInput, account, *, notify_sound: str) -> None:
-    phone_cc = account.phone_cc or "+81"
+    phone_cc = "+81"  # 国番号は日本固定
     log.info(f"page: 電話番号登録 {account.email} {phone_cc} {account.phone_num}")
     await human_delay(0.4, 0.8)
     if not account.phone_num:
