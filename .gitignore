@@ -1,0 +1,18 @@
+# 秘密情報（絶対にコミットしない）
+credentials.json
+token.json
+
+# ローカル設定（実 URL/シート名を含むため）
+config.yaml
+
+# 進捗ステータスファイル
+.amazon-status.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# OS
+.DS_Store
